@@ -1,2 +1,2 @@
 # pyrkanoid
-Creando un Arkanoid en Python con pygame
+Arkanoid en Python con pygame
