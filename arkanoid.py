@@ -247,6 +247,7 @@ while True:
                     or (collided_block.rect.topright[1] <= ball.rect.bottomleft[1] and collided_block.rect.bottomright[1] >= ball.rect.topleft[1])) \
                     and collided_block.rect.y < ball.rect.y:
                 ball_collided.vel[0] *= -1
+                #ball_collided.vel[1] *= -1
             else:
                 ball_collided.vel[1] *= -1
 
