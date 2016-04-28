@@ -30,7 +30,7 @@ state = string con el carácter que indica el estado (definido por el color/letr
 'L' - Laser
 'E' - Elongated
 'D' -
-'P' - Extra Life
+'P' - Extra Life (ver arkanoid.py)
 
 '''
 
@@ -145,6 +145,4 @@ def change_vaus_behavior(state, vaus):
         return surfaces
 
     elif state == 'D':
-        pass
-    elif state == 'P':
         pass
