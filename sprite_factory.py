@@ -3,9 +3,7 @@
 from pygame import sprite, image, transform
 
 '''
-
 Fábrica de sprites para generar todos los sprites del juego (originalmente sólo bloques y power-ups)
-
 '''
 
 
@@ -54,9 +52,6 @@ class SpriteFactory(sprite.Sprite):
             self.image = self.animation_sheet.subsurface(new_area)
 
         elif surfaces is not None:
-            # TODO AL MOVER LA NAVE MIENTRAS SE EJECUTA LA ANIMACIÓN EL RECTÁNGULO ESTÁ CAMBIANDO DE POSICIÓN.
-            # SIN EMBARGO, EL GRÁFICO GENERADO EN CADA ITERACIÓN LO ESTÁ HACIENDO EN LA POSICIÓN EN LA QUE ESTABA
-            # ORIGINALMENTE EN EL MOMENTO DE COMENZARLA.
             # La animación no repetirá el ciclo aquí, sino que finalizará en el sprite final
             if self.current_frame >= self.frames - 1:
                 self.animate = False
