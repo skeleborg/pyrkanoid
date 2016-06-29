@@ -77,12 +77,16 @@ class LevelFactory(sprite.Group):
                     block_sprite = sprite_factory.SpriteFactory(self.sprite_sheet, sprite_type=sprite_type, animation_sheet=animation_sheet, frames=6)
                     # Cogemos el primer fotograma para que sea la imagen general que se muestra mientras no se active la
                     # reproducción de la animación.
-                    block_sprite_area = (random_block_color[0], random_block_color[1], 16, random_block_color[3])
+                    block_sprite_area = (random_block_color[0], random_block_color[1], random_block_color[2] // block_sprite.frames, random_block_color[3])
                     block_sprite.image = transform.scale2x(block_sprite.image.subsurface(Rect(block_sprite_area)))
                 else:
                     # Estos bloques desaparecen
                     block_sprite = sprite_factory.SpriteFactory(self.sprite_sheet, sprite_type=sprite_type)
                     block_sprite.image = transform.scale2x(block_sprite.image.subsurface(Rect(random_block_color)))
+                # Master image para reescalados sin pérdidas
+                block_sprite.block_image_master = block_sprite.image
+                if block_sprite.animation_sheet is not None:
+                    block_sprite.animation_sheet_master = block_sprite.animation_sheet
 
                 # PASO 2: UBICAR SPRITE
                 block_sprite.rect = block_sprite.image.get_rect()

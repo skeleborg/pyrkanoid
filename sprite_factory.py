@@ -8,6 +8,8 @@ Fábrica de sprites para generar todos los sprites del juego (originalmente sól
 
 
 class SpriteFactory(sprite.Sprite):
+    classlist = []
+
     def __init__(self, img, vel=[0, 0], sprite_type=None, animation_sheet=None, frames=0):
         sprite.Sprite.__init__(self)
         if type(img).__name__ == "str":
@@ -47,8 +49,8 @@ class SpriteFactory(sprite.Sprite):
                 self.current_frame += 1
 
             new_area = (self.current_frame * self.rect.width, 0, self.rect.width, self.rect.height)
-            # Ver que sólo se cambia la imagen, no es necesario volver a obtener el rectángulo porque ya está
-            # definido; de volver a obtenerlo, los nuevos fotogramas se dibujarán en la posición (0, 0).
+            # Ver que sólo se cambia la imagen, no es necesario volver a obtener el rectángulo porque ya está definido
+            center = self.rect.center
             self.image = self.animation_sheet.subsurface(new_area)
 
         elif surfaces is not None:
@@ -60,7 +62,7 @@ class SpriteFactory(sprite.Sprite):
 
             center = self.rect.center
             self.image = transform.scale2x(self.animation_sheet.subsurface(surfaces[self.current_frame]))
-            self.rect = self.image.get_rect()
-            self.rect.center = center
 
+        self.rect = self.image.get_rect()
+        self.rect.center = center
         return self.animate
