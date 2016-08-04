@@ -36,7 +36,6 @@ state = string con el carácter que indica el estado (definido por el color/letr
 
 
 def change_vaus_behavior(state, vaus):
-    # TODO CAMBIAR ESTADO DE VAUS O LA BOLA, AL ASOCIADO AL POWERUP CONTRA EL QUE COLISIONA ¡¡¡¡REPASAR!!!!
     if state == 'C':
         pass
     elif state == 'L':

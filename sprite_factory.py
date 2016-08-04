@@ -17,6 +17,8 @@ class SpriteFactory(sprite.Sprite):
         else:
             self.image = img.convert_alpha()
         self.rect = self.image.get_rect()
+        # Para reubicación tras reescalado
+        self.position_master = self.rect.topleft
         self.sprite_type = sprite_type
         # Banderas que usaremos para iniciar animaciones o movimiento cuando el juego las requiera
         self.moving = False

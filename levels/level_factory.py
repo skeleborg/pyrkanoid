@@ -73,7 +73,7 @@ class LevelFactory(sprite.Group):
                     # que se carga aparte.
                     # Estos bloques tendrán una variable extra para almacenar los sprites de la animación en una nueva
                     # subsuperficie.
-                    animation_sheet = transform.scale2x(image.load(self.sprite_sheet).subsurface(Rect(random_block_color)))
+                    animation_sheet = transform.scale2x(image.load(self.sprite_sheet).convert().subsurface(Rect(random_block_color)))
                     block_sprite = sprite_factory.SpriteFactory(self.sprite_sheet, sprite_type=sprite_type, animation_sheet=animation_sheet, frames=6)
                     # Cogemos el primer fotograma para que sea la imagen general que se muestra mientras no se active la
                     # reproducción de la animación.
@@ -92,6 +92,8 @@ class LevelFactory(sprite.Group):
                 block_sprite.rect = block_sprite.image.get_rect()
                 block_sprite.rect.x = block_sprite.rect.width * block
                 block_sprite.rect.y = block_sprite.rect.height * row + self.grid_height * 2
+                # Para reubicar elementos en el reescalado
+                block_sprite.position_master = block_sprite.rect.topleft
 
                 # PASO 3: AÑADIR SPRITE AL GRUPO
                 self.add(block_sprite)
