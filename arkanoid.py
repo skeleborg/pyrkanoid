@@ -25,8 +25,6 @@ pygame.init()
 # ANCHO Y ALTO DE LA VENTANA
 FRAME_WIDTH = 448  # FIELD_WIDTH * 2
 FRAME_HEIGHT = 544  # FIELD_HEIGHT * 2 + SCORE_AREA_HEIGHT
-new_width, new_height = 0, 0
-# scale_x, scale_y = 1, 1
 
 # ALTO DEL PANEL PARA PUNTUACIONES
 SCORE_AREA_HEIGHT = 50
@@ -66,6 +64,7 @@ moving_bola = False
 # Otras banderas
 killed = False
 scaled = False
+run_first_time = True
 
 # Vidas por defecto
 lives = 3
@@ -96,7 +95,7 @@ vaus_sprite_sheet = image.load('./lib/img/vaus.png').convert_alpha()
 # blocks_sprite_sheet = image.load('./lib/img/blocks_backgrounds.png').convert_alpha()
 fields_sprite_sheet = image.load('./lib/img/fields.png').convert_alpha()
 
-# Añadimos la nave
+# Creamos el sprite nave
 vaus_image = transform.scale2x(vaus_sprite_sheet.subsurface((0, 0, 32, 8)).convert_alpha())
 vaus_pos = (FRAME_WIDTH // 2, FRAME_HEIGHT - 100)
 vaus_vel = [5, 0]
@@ -104,7 +103,7 @@ vaus = sprite_factory.SpriteFactory(vaus_image, vaus_vel)
 vaus_single_group = sprite.GroupSingle()
 vaus_single_group.add(vaus)
 
-# Añadimos la bola
+# Creamos el sprite bola
 ball_image = transform.scale2x(vaus_sprite_sheet.subsurface((40, 0, 5, 4)))
 ball_vel = [3, -3]
 ball = sprite_factory.SpriteFactory(ball_image, ball_vel)
@@ -120,15 +119,17 @@ lives_group = sprite.Group()
 block_group = level_factory.LevelFactory(13, 10, FIELD_WIDTH, SCORE_AREA_HEIGHT, FIELD_BORDER).add_sprites()
 block_image = block_group.sprites()[0].image.get_rect()
 
+# Creamos la estructura del sprite powerup. El sprite se generará dinámicamente durante el juego
 powerup_sprite_sheet = image.load('./lib/img/powerups.png').convert_alpha()  # Se redimensionará al doble después
 powerup_frames = 8
 powerup_dim = (16, 7)
 powerup_single_group = sprite.GroupSingle()
 
+# Creamos la estructura de la bala para el modo de vaus "láser". Las balas se generarán dinámicamente durante el juego
 bullet_image = vaus_sprite_sheet.subsurface((40, 17, 16, 6))
 bullet_group = sprite.Group()  # Cada sprite será el recuadro entero que engloba las dos balas.
 
-# VARIABLES PARA REESCALADO DE RESOLUCIÓN Y AUXILIARES PARA REESCALADO DE GRÁFICOS SIN PÉRDIDAS
+# VARIABLES PARA REESCALADO DE RESOLUCIÓN Y AUXILIARES PARA REESCALADO DE GRÁFICOS SIN PÉRDIDAS DE IMAGEN
 scale_x, scale_y = 1.0, 1.0
 # Proporción del tamaño de los gráficos respecto de la ventana
 vaus_scale = (FRAME_WIDTH // vaus_single_group.sprite.image.get_width(),
@@ -137,6 +138,7 @@ ball_scale = (FRAME_WIDTH // ball.image.get_width(), FRAME_HEIGHT // ball.image.
 life_scale = (FRAME_WIDTH // life_image.get_width(), FRAME_HEIGHT // life_image.get_height())
 powerup_block_scale = (FRAME_WIDTH // block_image.width, FRAME_HEIGHT // block_image.height)
 bullet_scale = (FRAME_WIDTH // bullet_image.get_width(), FRAME_HEIGHT // bullet_image.get_height())
+
 
 '''
 RECALCULA GRÁFICOS, RECTÁNGULOS Y POSICIONES DEPENDIENDO DE LOS CAMBIOS DE TAMAÑO DE LA PANTALLA, SI SE PRODUCEN.
@@ -149,7 +151,7 @@ def render(previous_width, previous_height, new_dimensions=[]):
         # Variables auxiliares para calcular los nuevos rectángulos para las colisiones
         old_rect_x, old_rect_y = 0, 0
 
-        # Actualizamos las dimensiones de la superficie de la ventana
+        # Actualizamos las dimensiones de la superficie de la ventana y el gráfico que hace de fondo
         window = display.set_mode(new_dimensions, RESIZABLE)
         field_area = transform.scale(field_sheet, window.get_size())
 
@@ -158,27 +160,37 @@ def render(previous_width, previous_height, new_dimensions=[]):
 
         # TODO REPASAR VELOCIDAD VAUS Y BOLA (¿LA BOLA VA MÁS RÁPIDO REESCALADA?)
 
-        vaus_single_group.sprite.image = transform.scale(vaus_image,
-                                                         (window.get_width() // vaus_scale[0],
-                                                          window.get_height() // vaus_scale[1]))
-        old_rect_x = float(vaus_single_group.sprite.rect.x)
-        old_rect_y = float(vaus_single_group.sprite.rect.y)
-        vaus_single_group.sprite.rect = vaus_single_group.sprite.image.get_rect()
-        vaus_single_group.sprite.rect.topleft = (window.get_width() / (previous_width / old_rect_x), \
-                                                 (window.get_height() / (previous_height / old_rect_y)))
-        vaus_single_group.sprite.vel = [window.get_width() / (previous_width / vaus_vel[0]), 0]
+        if not run_first_time:
+            vaus_single_group.sprite.image = transform.scale(vaus_image,
+                                                             (window.get_width() // vaus_scale[0],
+                                                              window.get_height() // vaus_scale[1]))
+            old_rect_x = float(vaus_single_group.sprite.rect.x)
+            old_rect_y = float(vaus_single_group.sprite.rect.y)
+            vaus_single_group.sprite.rect = vaus_single_group.sprite.image.get_rect()
+            vaus_single_group.sprite.rect.topleft = (window.get_width() / (previous_width / old_rect_x), \
+                                                     (window.get_height() / (previous_height / old_rect_y)))
+            vaus_single_group.sprite.vel = [window.get_width() / (previous_width / vaus_vel[0]), 0]
+
+            for life in lives_group:
+                life.image = transform.scale(life_image, (window.get_width() // life_scale[0], \
+                                                          window.get_height() // life_scale[1]))
+                old_rect_x = float(life.rect.x)
+                old_rect_y = float(life.rect.y)
+                life.rect = life.image.get_rect()
+                life.rect.topleft = (window.get_width() / (previous_width / old_rect_x), \
+                                     window.get_height() / (previous_height / old_rect_y))
 
         for ball in ball_group:
             for ball in ball_group:
-                ball.image = transform.scale(ball_image,
-                                             (
-                                             window.get_width() // ball_scale[0], window.get_height() // ball_scale[1]))
+                ball.image = transform.scale(ball_image, (window.get_width() // ball_scale[0], \
+                                                          window.get_height() // ball_scale[1]))
             old_rect_x = float(ball.rect.x)
             old_rect_y = float(ball.rect.y)
             ball.rect = ball.image.get_rect()
             ball.rect.topleft = (window.get_width() / (previous_width / old_rect_x), \
                                  window.get_height() / (previous_height / old_rect_y))
-            ball.vel = [window.get_width() / (previous_width / ball_vel[0]), window.get_height() / (previous_height / ball_vel[1])]
+            ball.vel = [window.get_width() / (previous_width / ball_vel[0]),
+                        window.get_height() / (previous_height / ball_vel[1])]
 
         for block in block_group:
             if block.animation_sheet is not None:
@@ -196,15 +208,6 @@ def render(previous_width, previous_height, new_dimensions=[]):
             block.rect.topleft = (window.get_width() / (FRAME_WIDTH / block.position_master[0]), \
                                   window.get_height() / (FRAME_HEIGHT / block.position_master[1]))
 
-        for life in lives_group:
-            life.image = transform.scale(life_image,
-                                         (window.get_width() // life_scale[0], window.get_height() // life_scale[1]))
-            old_rect_x = float(life.rect.x)
-            old_rect_y = float(life.rect.y)
-            life.rect = life.image.get_rect()
-            life.rect.topleft = (window.get_width() / (previous_width / old_rect_x), \
-                                 window.get_height() / (previous_height / old_rect_y))
-
         if len(powerup_single_group) > 0:
             powerup_single_group.sprite.animation_sheet = transform.scale(
                 powerup_single_group.sprite.animation_sheet_master, \
@@ -221,21 +224,23 @@ def render(previous_width, previous_height, new_dimensions=[]):
             powerup_single_group.sprite.rect.topleft = (window.get_width() / (previous_width / old_rect_x), \
                                                         window.get_height() / (previous_height / old_rect_y))
 
-        for bullet in bullet_group:
-            bullet.image = transform.scale(bullet_image, (
-                window.get_width() // bullet_scale[0], window.get_height() // bullet_scale[1]))
-            old_rect_x = float(bullet.rect.x)
-            old_rect_y = float(bullet.rect.y)
-            bullet.rect = bullet.image.get_rect()
-            bullet.rect.topleft = (window.get_width() / (previous_width / old_rect_x), \
-                                   window.get_height() / (previous_height / old_rect_y))
+        if len(bullet_group) > 0:
+            for bullet in bullet_group:
+                bullet.image = transform.scale(bullet_image, (window.get_width() // bullet_scale[0], \
+                                                              window.get_height() // bullet_scale[1]))
+                old_rect_x = float(bullet.rect.x)
+                old_rect_y = float(bullet.rect.y)
+                bullet.rect = bullet.image.get_rect()
+                bullet.rect.topleft = (window.get_width() / (previous_width / old_rect_x), \
+                                       window.get_height() / (previous_height / old_rect_y))
 
         scaled = False
 
     if vaus_single_group.sprite.animate:
         vaus_single_group.sprite.update(surfaces=surfaces)
         # Como hay animaciones de Vaus en las que varía el tamaño de la imagen del cuadro, hay que recalcular la
-        # escala para que no se esté calculando continuamente respecto del tamaño de la imagen original.
+        # escala para que no se esté calculando continuamente respecto del tamaño de la imagen original (compartido
+        # por el modo "láser").
         vaus_scale = (FRAME_WIDTH // vaus_single_group.sprite.image.get_width(), \
                       FRAME_HEIGHT // vaus_single_group.sprite.image.get_height())
         vaus_single_group.sprite.image = transform.scale(vaus_single_group.sprite.image, \
@@ -248,17 +253,14 @@ def render(previous_width, previous_height, new_dimensions=[]):
         vaus_single_group.sprite.rect.center = old_rect_center
         vaus_image = vaus_single_group.sprite.image
 
-    #for bullet in bullet_group:
-    #    bullet.image = transform.scale(bullet_image, (
-    #        window.get_width() // bullet_scale[0], window.get_height() // bullet_scale[1]))
-
 
 '''
-RENDERIZAR UNA SOLA IMAGEN. ESTA FUNCIÓN SERÁ LLAMADA UNA VEZ PARA GRÁFICOS GENERADOS EN EL CURSO DEL JUEGO,
+RENDERIZAR UNA SOLA IMAGEN. ESTA FUNCIÓN SERÁ LLAMADA UNA VEZ PARA GRÁFICOS GENERADOS EN EL CURSO DEL JUEGO DESDE CERO,
 COMO LAS VIDAS EN PANTALLA
 '''
 def render_single(graphic, graphic_image, graphic_scale):
-    graphic.image = transform.scale(graphic_image, (window.get_width() // graphic_scale[0], window.get_height() // graphic_scale[1]))
+    graphic.image = transform.scale(graphic_image, (window.get_width() // graphic_scale[0], \
+                                                    window.get_height() // graphic_scale[1]))
     graphic.rect = graphic.image.get_rect()
 
 
@@ -266,6 +268,7 @@ def render_single(graphic, graphic_image, graphic_scale):
 RESTABLECER VALORES POR DEFECTO Y (RE)INICIALIZAR EL JUEGO
 '''
 def new_game():
+    global run_first_time
 
     vaus = sprite_factory.SpriteFactory(vaus_image)
     # Renderizamos para adaptar la imagen a la resolución actual (p.e., si es más grande)
@@ -279,8 +282,7 @@ def new_game():
     for l in range(0, lives):
         life = sprite_factory.SpriteFactory(life_image)
         # Como las vidas son unos gráficos que se generan de cero cada vez que se reinicia el juego, necesitamos
-        # hacer un renderizado previo para detectar sus dimensiones en relación con las actuales de la ventana
-        # TODO DADO QUE AL PRINCIPIO DEL JUEGO LAS VIDAS SE RENDERIZAN DOS VECES, ENCONTRAR EL MODO DE HACERLO SÓLO UNA
+        # hacer un renderizado previo para detectar sus dimensiones en relación con las actuales de la ventana.
         render_single(life, life_image, life_scale)
         life.rect.center = (l * life.image.get_width() + life.image.get_width(), window.get_height() - 30)
         # Por defecto el valor de 'position_master' será cero, hay que asignar un valor al crear la nueva partida.
@@ -305,6 +307,14 @@ def new_game():
     # Si hay alguna bala en pantalla, se elimina
     if len(bullet_group) > 0:
         bullet_group.empty()
+
+    # Modificamos una pequeña bandera para evitar renderizar gráficos dos veces. En la primera ejecución del juego, se
+    # renderizan dos veces los gráficos de vidas y vaus, tanto en esta función como en el evento del VideoResize
+    # inicial, por lo que nos aseguramos aquí de que el renderizado no se repita. No es una cuestión de pérdida de
+    # calidad, ya que no se estaría cambiando la dimensión del gráfico más de una vez para adaptarlo a la pantalla,
+    # sino que se pretende evitar repetir una operación innecesariamente.
+    if run_first_time:
+        run_first_time = False
 
 
 '''
@@ -529,7 +539,6 @@ while True:
                 scale_x = event.w / previous_width
             if event.h != previous_height:
                 scale_y = event.h / previous_height
-            #scale(previous_width, previous_height, new_dimensions)
 
         # Posibles entradas del teclado y mouse
         keys = pygame.key.get_pressed()
@@ -584,16 +593,8 @@ while True:
     window.blit(fps_area, (150, SCORE_AREA_HEIGHT / 3))
     # print(clock.get_fps())
 
-    if vaus_single_group.sprite.animate:
-        #vaus_single_group.sprite.update(surfaces=surfaces)
-        # Como es probable que la animación de Vaus contenga cuadros de longitud variable, es mejor calcular la
-        # proporción de cada cuadro al momento y no depender de la propia (vaus_scale), ya que el resultado saldrá
-        # dependiente de la imagen original y no de la imagen que realmente queremos escalar proporcionalmente.
-        #render_single(vaus_single_group.sprite, vaus_single_group.sprite.image,
-        #              (FRAME_WIDTH // vaus_single_group.sprite.image.get_width(), \
-        #               FRAME_HEIGHT // vaus_single_group.sprite.image.get_height()))
-        pass
-    elif not vaus_single_group.sprite.animate and killed:
+    # Animación de vaus para pérdida de una vida
+    if not vaus_single_group.sprite.animate and killed:
         # Redefinimos la imagen y escala de Vaus, debido a los cambios sufridos con la animación de "muerte".
         vaus_image = transform.scale2x(vaus_sprite_sheet.subsurface((0, 0, 32, 8)).convert_alpha())
         vaus_scale = (FRAME_WIDTH // vaus_image.get_width(), \
@@ -618,9 +619,8 @@ while True:
         powerup_single_group.update(powerup_single_group.sprite.vel[0], powerup_single_group.sprite.vel[1])
         if powerup_single_group.sprite.rect.y >= window.get_height():
             powerup_single_group.sprite.kill()
-    pygame.display.flip()
 
-    # render()
+    pygame.display.flip()
 
     # Lock FPS
     # TODO cambiar
