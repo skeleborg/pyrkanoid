@@ -308,14 +308,6 @@ def new_game():
     if len(bullet_group) > 0:
         bullet_group.empty()
 
-    # Modificamos una pequeña bandera para evitar renderizar gráficos dos veces. En la primera ejecución del juego, se
-    # renderizan dos veces los gráficos de vidas y vaus, tanto en esta función como en el evento del VideoResize
-    # inicial, por lo que nos aseguramos aquí de que el renderizado no se repita. No es una cuestión de pérdida de
-    # calidad, ya que no se estaría cambiando la dimensión del gráfico más de una vez para adaptarlo a la pantalla,
-    # sino que se pretende evitar repetir una operación innecesariamente.
-    if run_first_time:
-        run_first_time = False
-
 
 '''
 COMPROBAR COLISIONES DE VAUS
@@ -523,6 +515,9 @@ def generate_powerup(collided_block):
 
 new_game()
 
+# LINUX
+event.post(event.Event(pygame.VIDEORESIZE, {'h': window.get_height(), 'size': window.get_size(), 'w': window.get_width()} ))
+
 # BUCLE PRINCIPAL DEL JUEGO
 while True:
 
@@ -539,6 +534,13 @@ while True:
                 scale_x = event.w / previous_width
             if event.h != previous_height:
                 scale_y = event.h / previous_height
+            # Modificamos una pequeña bandera para evitar renderizar gráficos dos veces. En la primera ejecución del juego, se
+            # renderizan dos veces los gráficos de vidas y vaus, tanto en esta función como en el evento del VideoResize
+            # inicial, por lo que nos aseguramos aquí de que el renderizado no se repita. No es una cuestión de pérdida de
+            # calidad, ya que no se estaría cambiando la dimensión del gráfico más de una vez para adaptarlo a la pantalla,
+            # sino que se pretende evitar repetir una operación innecesariamente.
+            if run_first_time:
+                run_first_time = False
 
         # Posibles entradas del teclado y mouse
         keys = pygame.key.get_pressed()
