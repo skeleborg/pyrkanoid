@@ -19,7 +19,7 @@ levels/level_factory.py.
 la misma función que pulsar el aspa de la esquina superior derecha de la ventana.
 - Romper las fichas de colores genera una serie de "powerups" que tienen distintos efectos según su
 color:
-    · Rojo: lo que llamo "modo láser". Habilita el elemento controlado por el jugador (a partir de
+    \n· Rojo: lo que llamo "modo láser". Habilita el elemento controlado por el jugador (a partir de
       ahora me referiré a ello como "Vaus") para generar proyectiles que permitan romper las fichas más
       rápido, además de las que rompa la propia bola. También cambia el aspecto de Vaus.
     · Azul oscuro: prolonga la longitud de Vaus para facilitar la intercepción de la bola.
